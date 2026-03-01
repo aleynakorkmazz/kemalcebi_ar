@@ -1,97 +1,142 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kemal Çebi AR - v1.3</title>
-    
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kemal Çebi</title>
+    
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
-    <style>
-        body { margin: 0; overflow: hidden; background: #000; }
-        
-        #version-badge {
-            position: absolute; top: 15px; right: 15px;
-            color: #00ff00; background-color: rgba(0, 0, 0, 0.8);
-            padding: 6px 12px; font-family: sans-serif;
-            font-size: 13px; font-weight: bold;
-            border-radius: 8px; border: 1px solid #00ff00;
-            z-index: 10000;
-        }
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+        }
+        
+        #version-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #ffffff;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 6px 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            z-index: 9999;
+            pointer-events: none;
+        }
 
-        /* Başlangıç Ekranı */
-        #start-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #111;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 99999; /* En üstte durmasını garanti eder */
-            transition: opacity 0.5s ease;
-        }
+        /* Başlangıç Ekranı Tasarımı */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000; /* Kameranın ve AR elementlerinin en üstünde durmasını sağlar */
+        }
 
-        #start-button {
-            padding: 20px 40px; font-size: 22px; color: white;
-            background: #007bff; border: none; border-radius: 50px;
-            cursor: pointer; font-weight: bold;
-            box-shadow: 0 0 20px rgba(0,123,255,0.6);
-        }
-    </style>
+        #start-text {
+            color: white;
+            margin-bottom: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 16px;
+            text-align: center;
+            line-height: 1.5;
+            padding: 0 20px;
+        }
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Versiyon Güncelleme
-            let v = localStorage.getItem('v_pi_final') || 0;
-            v = parseInt(v) + 1;
-            localStorage.setItem('v_pi_final', v);
-            document.getElementById('version-badge').innerText = "v1.3." + v;
+        #start-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: background-color 0.2s;
+        }
 
-            const startScreen = document.getElementById('start-screen');
-            const startButton = document.getElementById('start-button');
-            const video = document.querySelector('#ar-video');
+        #start-button:active {
+            background-color: #0056b3;
+        }
+    </style>
 
-            startButton.addEventListener('click', function() {
-                // EKRANI HEMEN GİZLE (Hata olsa bile gitsin)
-                startScreen.style.opacity = "0";
-                setTimeout(() => { startScreen.style.display = 'none'; }, 500);
+    <script>
+        // iOS Video/Ses kilidini açmak için gereken mantık
+        document.addEventListener("DOMContentLoaded", function() {
+            const startScreen = document.getElementById('start-screen');
+            const startButton = document.getElementById('start-button');
+            const video = document.querySelector('#ar-video');
 
-                // Videoyu uyandır
-                video.play().then(() => {
-                    video.pause();
-                }).catch(e => console.log("Video hazır bekliyor..."));
-            });
-        });
+            startButton.addEventListener('click', function() {
+                // Kullanıcı tıkladığında iOS'un "kullanıcı onay verdi" kuralını yerine getiriyoruz.
+                video.play().then(() => {
+                    video.pause(); // Hemen durduruyoruz ki hedef bulunmadan kendi kendine çalmasın
+                    startScreen.style.display = 'none'; // Başlangıç ekranını gizle
+                }).catch(error => {
+                    console.log("Video başlatma hatası:", error);
+                    startScreen.style.display = 'none';
+                });
+            });
+        });
 
-        // AR Kontrolcü
-        AFRAME.registerComponent('video-handler', {
-            init: function () {
-                const video = document.querySelector('#ar-video');
-                this.el.addEventListener('targetFound', () => { video.play(); });
-                this.el.addEventListener('targetLost', () => { video.pause(); });
-            }
-        });
-    </script>
+        // AR hedefi bulunduğunda videoyu başlatan script
+        AFRAME.registerComponent('video-controller', {
+            init: function () {
+                const target = this.el;
+                const video = document.querySelector('#ar-video');
+
+                target.addEventListener('targetFound', event => {
+                    console.log("Hedef görsel bulundu, video başlıyor...");
+                    video.play(); // Hedef bulununca sesiyle beraber oynat
+                });
+
+                target.addEventListener('targetLost', event => {
+                    console.log("Hedef kaybedildi, video duraklatıldı.");
+                    video.pause();
+                });
+            }
+        });
+    </script>
 </head>
 <body>
 
-    <div id="version-badge">v1.3.0</div>
+    <div id="start-screen">
+        <div id="start-text">Hoş Geldiniz!<br>Kameranı görsele tutmadan önce başlat butonuna tıkla.</div>
+        <button id="start-button">Deneyime Başla (Sesi Aç)</button>
+    </div>
 
-    <div id="start-screen">
-        <button id="start-button">BAŞLAT</button>
-    </div>
+    <div id="version-badge">v1.0.0</div>
 
-    <a-scene mindar-image="imageTargetSrc: targets.mind; autoStart: true;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-        
-        <a-assets>
-            <video id="ar-video" src="yeni.mp4" preload="auto" loop crossorigin="anonymous" playsinline webkit-playsinline></video>
-        </a-assets>
+    <a-scene mindar-image="imageTargetSrc: kemalcebi/targets.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        <a-assets>
+            <video id="ar-video" src="kemalcebi/video.mp4" preload="auto" loop crossorigin="anonymous" playsinline webkit-playsinline></video>
+        </a-assets>
 
-        <a-entity mindar-image-target="targetIndex: 0" video-handler>
-            <a-video src="#ar-video" position="0 0 0" width="1.05" height="0.62" rotation="0 0 0"></a-video>
-        </a-entity>
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    </a-scene>
+        <a-entity mindar-image-target="targetIndex: 0" video-controller>
+            <a-video src="#ar-video" position="0 0 0" height="0.60" width="1.05" rotation="0 0 0"></a-video>
+        </a-entity>
+
+    </a-scene>
 
 </body>
 </html>
+
+
+
+Bu KODDAN AYARLA VİDEONUN ENİNİ BOYUNU
