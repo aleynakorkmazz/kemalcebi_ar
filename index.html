@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pi Günü AR</title>
+    <title>Pi Günü AR - v1.1</title>
     
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
@@ -13,39 +13,34 @@
         
         #version-badge {
             position: absolute; top: 15px; right: 15px;
-            color: #00ff00; background-color: rgba(0, 0, 0, 0.7);
+            color: #00ff00; background-color: rgba(0, 0, 0, 0.8);
             padding: 6px 12px; font-family: sans-serif;
-            font-size: 14px; font-weight: bold;
+            font-size: 13px; font-weight: bold;
             border-radius: 8px; border: 1px solid #00ff00;
-            z-index: 9999; pointer-events: none;
+            z-index: 10000;
         }
 
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
+            background-color: rgba(0, 0, 0, 0.95);
             display: flex; flex-direction: column; justify-content: center;
-            align-items: center; z-index: 10000;
-        }
-
-        #start-text {
-            color: white; margin-bottom: 20px; font-family: sans-serif;
-            text-align: center; padding: 0 20px;
+            align-items: center; z-index: 10001;
         }
 
         #start-button {
-            padding: 15px 30px; font-size: 18px; color: white;
-            background-color: #6200ee; border: none; border-radius: 10px;
-            cursor: pointer; font-weight: bold;
+            padding: 20px 40px; font-size: 20px; color: white;
+            background-color: #007bff; border: none; border-radius: 12px;
+            cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,123,255,0.4);
         }
     </style>
 
     <script>
-        // Versiyon Sayacı
+        // Versiyon Takibi
         document.addEventListener("DOMContentLoaded", function() {
-            let vCount = localStorage.getItem('v_count') || 0;
-            vCount = parseInt(vCount) + 1;
-            localStorage.setItem('v_count', vCount);
-            document.getElementById('version-badge').innerText = "v1.0." + vCount;
+            let ver = localStorage.getItem('v_pi') || 0;
+            ver = parseInt(ver) + 1;
+            localStorage.setItem('v_pi', ver);
+            document.getElementById('version-badge').innerText = "v1.1." + ver;
 
             const startScreen = document.getElementById('start-screen');
             const startButton = document.getElementById('start-button');
@@ -71,11 +66,10 @@
 </head>
 <body>
 
-    <div id="version-badge">v1.0.0</div>
+    <div id="version-badge">v1.1.0</div>
 
     <div id="start-screen">
-        <div id="start-text">Hoş Geldiniz!<br>Deneyimi başlatmak için butona tıklayın.</div>
-        <button id="start-button">BAŞLAT</button>
+        <button id="start-button">DENEYİMİ BAŞLAT</button>
     </div>
 
     <a-scene mindar-image="imageTargetSrc: targets.mind;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
@@ -87,7 +81,7 @@
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
         <a-entity mindar-image-target="targetIndex: 0" video-controller>
-            <a-video src="#ar-video" position="0 0 0" width="1" height="0.5625" rotation="0 0 0"></a-video>
+            <a-video src="#ar-video" position="0 0 0" width="1.02" height="0.58" rotation="0 0 0"></a-video>
         </a-entity>
 
     </a-scene>
